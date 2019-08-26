@@ -146,6 +146,10 @@ pub trait EventHandler {
     /// Called when the user resizes the window, or when it is resized
     /// via [`graphics::set_mode()`](../graphics/fn.set_mode.html).
     fn resize_event(&mut self, _ctx: &mut Context, _width: f32, _height: f32) {}
+
+    /// Called when a winit event is received. Exposed for systems that want to
+    /// process raw winit events.
+    fn raw_winit_event(&mut self, _ctx: &mut Context, _event: &Event) {}
 }
 
 /// Terminates the [`ggez::event::run()`](fn.run.html) loop by setting
@@ -174,6 +178,7 @@ where
         ctx.timer_context.tick();
         events_loop.poll_events(|event| {
             ctx.process_event(&event);
+            state.raw_winit_event(ctx, &event);
             match event {
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::Resized(logical_size) => {
