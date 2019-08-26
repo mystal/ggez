@@ -165,6 +165,10 @@ where
     fn on_error(&mut self, _ctx: &mut Context, _origin: ErrorOrigin, _e: E) -> bool {
         true
     }
+
+    /// Called when a winit event is received. Exposed for systems that want to
+    /// process raw winit events.
+    fn raw_winit_event<T>(&mut self, _ctx: &mut Context, _event: &Event<T>) {}
 }
 
 /// Terminates the [`ggez::event::run()`](fn.run.html) loop by setting
@@ -198,6 +202,7 @@ where
         let state = &mut state;
 
         process_event(ctx, &mut event);
+        state.raw_winit_event(ctx, &event);
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::Resized(logical_size) => {
