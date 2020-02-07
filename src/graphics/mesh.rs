@@ -5,7 +5,7 @@ use gfx::traits::FactoryExt;
 use lyon;
 use lyon::tessellation as t;
 
-pub use self::t::{FillOptions, FillRule, LineCap, LineJoin, StrokeOptions};
+pub use self::t::{BasicGeometryBuilder, FillOptions, FillRule, LineCap, LineJoin, StrokeOptions};
 
 /// A builder for creating [`Mesh`](struct.Mesh.html)es.
 ///
@@ -156,15 +156,16 @@ impl MeshBuilder {
                 color: LinearColor::from(color),
             };
             match mode {
-                DrawMode::Fill(fill_options) => {
-                    let builder = &mut t::BuffersBuilder::new(buffers, vb);
-                    let _ = t::basic_shapes::fill_ellipse(
-                        t::math::point(point.x, point.y),
-                        t::math::vector(radius1, radius2),
-                        t::math::Angle { radians: 0.0 },
-                        &fill_options.with_tolerance(tolerance),
-                        builder,
-                    );
+                DrawMode::Fill(_fill_options) => {
+                    todo!("Re-enable once lyon's fill_ellipse tesselator is back!");
+                    //let builder = &mut t::BuffersBuilder::new(buffers, vb);
+                    //let _ = t::basic_shapes::fill_ellipse(
+                    //    t::math::point(point.x, point.y),
+                    //    t::math::vector(radius1, radius2),
+                    //    t::math::Angle { radians: 0.0 },
+                    //    &fill_options.with_tolerance(tolerance),
+                    //    builder,
+                    //);
                 }
                 DrawMode::Stroke(options) => {
                     let builder = &mut t::BuffersBuilder::new(buffers, vb);
@@ -297,14 +298,9 @@ impl MeshBuilder {
                 .iter()
                 .cloned()
                 .map(|p| {
-                    // Gotta turn ggez Point2's into lyon FillVertex's
+                    // Gotta turn ggez Point2's into lyon's math::Point
                     let mint_point = p.into();
-                    let np = lyon::math::point(mint_point.x, mint_point.y);
-                    let nv = lyon::math::vector(mint_point.x, mint_point.y);
-                    t::FillVertex {
-                        position: np,
-                        normal: nv,
-                    }
+                    lyon::math::point(mint_point.x, mint_point.y)
                 })
                 // Removing this collect might be nice, but is not easy.
                 // We can chunk a slice, but can't chunk an arbitrary
@@ -316,7 +312,7 @@ impl MeshBuilder {
             let vb = VertexBuilder {
                 color: LinearColor::from(color),
             };
-            let builder: &mut t::BuffersBuilder<_, _, _, _> =
+            let builder: &mut t::BuffersBuilder<_, _, _> =
                 &mut t::BuffersBuilder::new(&mut self.buffer, vb);
             use lyon::tessellation::GeometryBuilder;
             builder.begin_geometry();
@@ -385,20 +381,30 @@ struct VertexBuilder {
     color: LinearColor,
 }
 
-impl t::VertexConstructor<t::FillVertex, Vertex> for VertexBuilder {
-    fn new_vertex(&mut self, vertex: t::FillVertex) -> Vertex {
+impl t::BasicVertexConstructor<Vertex> for VertexBuilder {
+    fn new_vertex(&mut self, position: t::math::Point) -> Vertex {
         Vertex {
-            pos: [vertex.position.x, vertex.position.y],
-            uv: [vertex.position.x, vertex.position.y],
+            pos: [position.x, position.y],
+            uv: [0.0, 0.0],
             color: self.color.into(),
         }
     }
 }
 
-impl t::VertexConstructor<t::StrokeVertex, Vertex> for VertexBuilder {
-    fn new_vertex(&mut self, vertex: t::StrokeVertex) -> Vertex {
+impl t::FillVertexConstructor<Vertex> for VertexBuilder {
+    fn new_vertex(&mut self, position: t::math::Point, _attributes: t::FillAttributes) -> Vertex {
         Vertex {
-            pos: [vertex.position.x, vertex.position.y],
+            pos: [position.x, position.y],
+            uv: [position.x, position.y],
+            color: self.color.into(),
+        }
+    }
+}
+
+impl t::StrokeVertexConstructor<Vertex> for VertexBuilder {
+    fn new_vertex(&mut self, position: t::math::Point, _attributes: t::StrokeAttributes) -> Vertex {
+        Vertex {
+            pos: [position.x, position.y],
             uv: [0.0, 0.0],
             color: self.color.into(),
         }

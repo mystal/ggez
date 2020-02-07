@@ -45,12 +45,13 @@ glutin = "0.20"
 winit = { version = "0.19.3" }
 image = {version = "0.22", default-features = false, features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm",
 "tga", "tiff", "webp", "bmp", "dxt", ] }
-rodio = { version = "0.9", default-features = false, features = ["flac", "vorbis", "wav"] }
+#rodio = { version = "0.9", default-features = false, features = ["flac", "vorbis", "wav"] }
+rodio = { git = "https://github.com/RustAudio/rodio", rev = "1b3b716e9fc31fdbea2faea0e5d6dd32ddec6f58", default-features = false, features = ["flac", "vorbis", "wav"] }
 serde = "1"
 serde_derive = "1"
 toml = "0.5"
 log = "0.4"
-lyon = "0.13"
+lyon = "0.15"
 smart-default = "0.5"
 nalgebra = {version = "0.18", features = ["mint"] }
 # Has to be the same version of mint that nalgebra uses here.
