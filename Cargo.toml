@@ -30,6 +30,7 @@ default = ["c_dependencies"]
 bzip2 = ["zip/bzip2"]
 mp3 = ["rodio/mp3"]
 multithread-image-decoding = ["image/hdr", "image/jpeg_rayon"]
+tiff = ["image/tiff"]
 c_dependencies = ["bzip2", "mp3"]
 
 [dependencies]
@@ -44,7 +45,7 @@ gfx_window_glutin = "0.30"
 glutin = "0.20"
 winit = { version = "0.19.3" }
 image = {version = "0.22", default-features = false, features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm",
-"tga", "tiff", "webp", "bmp", "dxt", ] }
+"tga", "webp", "bmp", "dxt", ] }
 #rodio = { version = "0.9", default-features = false, features = ["flac", "vorbis", "wav"] }
 rodio = { git = "https://github.com/RustAudio/rodio", rev = "1b3b716e9fc31fdbea2faea0e5d6dd32ddec6f58", default-features = false, features = ["flac", "vorbis", "wav"] }
 serde = "1"
