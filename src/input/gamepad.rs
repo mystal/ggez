@@ -14,13 +14,34 @@ pub struct GamepadId(pub(crate) gilrs::GamepadId);
 use crate::context::Context;
 use crate::error::GameResult;
 
+/// Iterator over all connected gamepads.
+pub struct ConnectedGamepadsIterator<'a>(gilrs::ConnectedGamepadsIterator<'a>);
+
+impl<'a> Iterator for ConnectedGamepadsIterator<'a> {
+    type Item = (GamepadId, Gamepad<'a>);
+
+    fn next(&mut self) -> Option<(GamepadId, Gamepad<'a>)> {
+        self.0.next()
+            .map(|(id, gamepad)| (GamepadId(id), gamepad))
+    }
+}
+
+impl<'a> fmt::Debug for ConnectedGamepadsIterator<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<ConnectedGamepadsIterator: {:p}>", self)
+    }
+}
+
 /// Trait object defining a gamepad/joystick context.
 pub trait GamepadContext {
     /// Returns a gamepad event.
     fn next_event(&mut self) -> Option<Event>;
 
-    /// returns the `Gamepad` associated with an id.
+    /// Returns the `Gamepad` associated with an id.
     fn gamepad(&self, id: GamepadId) -> Gamepad;
+
+    /// Returns an iterator over all connected `Gamepad`s and their `GamepadId`s.
+    fn gamepads(&self) -> ConnectedGamepadsIterator;
 }
 
 /// A structure that contains gamepad state using `gilrs`.
@@ -49,6 +70,10 @@ impl GamepadContext for GilrsGamepadContext {
     fn gamepad(&self, id: GamepadId) -> Gamepad {
         self.gilrs.gamepad(id.0)
     }
+
+    fn gamepads(&self) -> ConnectedGamepadsIterator {
+        ConnectedGamepadsIterator(self.gilrs.gamepads())
+    }
 }
 
 /// A structure that implements [`GamepadContext`](trait.GamepadContext.html)
@@ -65,11 +90,20 @@ impl GamepadContext for NullGamepadContext {
     fn gamepad(&self, _id: GamepadId) -> Gamepad {
         panic!("Gamepad module disabled")
     }
+
+    fn gamepads(&self) -> ConnectedGamepadsIterator {
+        panic!("Gamepad module disabled")
+    }
 }
 
 /// Returns the `Gamepad` associated with an `id`.
 pub fn gamepad(ctx: &Context, id: GamepadId) -> Gamepad {
     ctx.gamepad_context.gamepad(id)
+}
+
+/// Returns an iterator over all connected gamepads and their IDs.
+pub fn gamepads(ctx: &Context) -> ConnectedGamepadsIterator {
+    ctx.gamepad_context.gamepads()
 }
 
 // Properties gamepads might want:
