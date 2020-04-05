@@ -338,6 +338,27 @@ impl From<(u8, u8, u8)> for Color {
     }
 }
 
+impl From<[u8; 4]> for Color {
+    /// Convert a `[R, G, B, A]` array of `u8`'s in the range `[0-255]` into a `Color`
+    fn from(val: [u8; 4]) -> Self {
+        let [r, g, b, a] = val;
+        let rf = (f32::from(r)) / 255.0;
+        let gf = (f32::from(g)) / 255.0;
+        let bf = (f32::from(b)) / 255.0;
+        let af = (f32::from(a)) / 255.0;
+        Color::new(rf, gf, bf, af)
+    }
+}
+
+impl From<[u8; 3]> for Color {
+    /// Convert a `[R, G, B]` array of `u8`'s in the range `[0-255]` into a `Color`,
+    /// with a value of 255 for the alpha element (i.e., no transparency.)
+    fn from(val: [u8; 3]) -> Self {
+        let [r, g, b] = val;
+        Color::from((r, g, b, 255))
+    }
+}
+
 impl From<[f32; 4]> for Color {
     /// Turns an `[R, G, B, A] array of `f32`'s into a `Color` with no format changes.
     /// All inputs should be in the range `[0.0-1.0]`.
@@ -380,6 +401,26 @@ impl From<Color> for (u8, u8, u8) {
     fn from(color: Color) -> Self {
         let (r, g, b, _) = color.into();
         (r, g, b)
+    }
+}
+
+impl From<Color> for [u8; 4] {
+    /// Convert a `Color` into a `(R, G, B, A)` tuple of `u8`'s in the range of `[0-255]`.
+    fn from(color: Color) -> Self {
+        let r = (color.r * 255.0) as u8;
+        let g = (color.g * 255.0) as u8;
+        let b = (color.b * 255.0) as u8;
+        let a = (color.a * 255.0) as u8;
+        [r, g, b, a]
+    }
+}
+
+impl From<Color> for [u8; 3] {
+    /// Convert a `Color` into a `(R, G, B)` tuple of `u8`'s in the range of `[0-255]`,
+    /// ignoring the alpha term.
+    fn from(color: Color) -> Self {
+        let (r, g, b, _) = color.into();
+        [r, g, b]
     }
 }
 
@@ -536,9 +577,11 @@ mod tests {
         let puce2 = Color::from_rgba_u32(0xCC88_99FFu32);
         let puce3 = Color::from((0xCC, 0x88, 0x99, 255));
         let puce4 = Color::new(0.80, 0.53333336, 0.60, 1.0);
+        let puce5 = Color::from([0xCC, 0x88, 0x99, 255]);
         assert_eq!(puce1, puce2);
         assert_eq!(puce1, puce3);
         assert_eq!(puce1, puce4);
+        assert_eq!(puce1, puce5);
     }
 
     #[test]
